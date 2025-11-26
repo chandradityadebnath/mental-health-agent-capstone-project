@@ -76,25 +76,48 @@ python app.py
 ## 📁 Repository Structure  
 ```
 mental-health-agent/
-│
-├── app.py
-├── README.md
-├── requirements.txt
-│
-├── models/
-│   ├── emotion_model.pkl
-│   └── intent_model.pkl
-│
-├── data/
-│   └── sample_conversations.json
-│
-├── images/
-│   ├── architecture.png
-│   └── workflow.png
-│
-└── utils/
-    ├── preprocessing.py
-    └── recommender.py
+├── 📄 README.md                    # Main project documentation
+├── 📄 requirements.txt             # Dependencies
+├── 📄 LICENSE                      # MIT License
+├── 📄 .gitignore                   # Git ignore file
+├── 📁 src/                         # Source code
+│   ├── __init__.py
+│   ├── agents/                     # Multi-agent system
+│   │   ├── __init__.py
+│   │   ├── crisis_detector.py
+│   │   ├── emotion_analyzer.py
+│   │   ├── support_planner.py
+│   │   └── resource_matcher.py
+│   ├── tools/                      # Custom tools
+│   │   ├── __init__.py
+│   │   ├── mental_health_tools.py
+│   │   └── safety_validator.py
+│   ├── memory/                     # Session & memory management
+│   │   ├── __init__.py
+│   │   ├── session_manager.py
+│   │   └── long_term_memory.py
+│   └── utils/                      # Utilities
+│       ├── __init__.py
+│       ├── config.py
+│       └── helpers.py
+├── 📁 notebooks/                   # Jupyter notebooks
+│   └── mental-health-agent-system-capstone-project.ipynb
+├── 📁 tests/                       # Test suite
+│   ├── __init__.py
+│   ├── test_agents.py
+│   ├── test_tools.py
+│   └── test_integration.py
+├── 📁 docs/                        # Documentation
+│   ├── architecture.md
+│   ├── api.md
+│   └── deployment.md
+├── 📁 examples/                    # Usage examples
+│   ├── basic_usage.py
+│   └── advanced_features.py
+├── 📁 data/                        # Sample data (if any)
+│   └── sample_resources.json
+├── 📄 .github/workflows/ci.yml     # CI/CD pipeline
+└── 📄 setup.py                     # Package setup
 ```
 
 ---
