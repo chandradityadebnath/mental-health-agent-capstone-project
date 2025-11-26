@@ -64,11 +64,24 @@ source env/bin/activate  # Windows: env\Scripts\activate
 ### 3️⃣ Install Dependencies  
 ```bash
 pip install -r requirements.txt
+## 🚀 Installation
+
+### Prerequisites
+- Python 3.8 or higher
+- pip package manager
+
+### Step-by-Step Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/chandradityadebnath/mental-health-agent-capstone-project.git
+   cd mental-health-agent-capstone-project
 ```
 
-### 4️⃣ Run the Application  
+### 4️⃣ Run basic example
 ```bash
-python app.py
+cd examples
+python basic_usage.py
 ```
 
 ---
