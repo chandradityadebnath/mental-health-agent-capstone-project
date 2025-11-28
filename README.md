@@ -1,5 +1,5 @@
 
-# 🌿 Mental Health Agent System — Capstone Project by Team Dynamo
+# 🌿 MindMate - Mental Health Agent System — Capstone Project by Team Dynamo
 
 A creative, smart, and extensible system designed to offer personalized mental‑health assistance using modern AI techniques.
 
