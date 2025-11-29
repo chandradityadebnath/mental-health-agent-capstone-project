@@ -5,12 +5,13 @@ from datetime import datetime
 import nest_asyncio
 import google.generativeai as genai
 import os
+import random
 
 # Apply nest_asyncio to handle async in Streamlit
 nest_asyncio.apply()
 
 # =============================================
-# 🧠 GEMINI AI INTEGRATION - COMPLETELY FIXED
+# 🧠 GEMINI AI INTEGRATION - FIXED
 # =============================================
 
 class GeminiAIIntegration:
@@ -71,7 +72,7 @@ class GeminiAIIntegration:
         print(f"🔍 Analyzing: '{text}'")
         print(f"🤖 AI Status: Model={self.model is not None}, Fallback={self.fallback_mode}")
         
-        # **FIXED: Check if we should use real AI**
+        # Check if we should use real AI
         use_real_ai = (self.model is not None and 
                       not self.fallback_mode and 
                       st.session_state.get('api_key_connected', False))
@@ -80,7 +81,7 @@ class GeminiAIIntegration:
         
         if use_real_ai:
             try:
-                # **FIXED: Better prompt that forces different responses**
+                # Better prompt that forces different responses
                 prompt = f"""
                 USER MESSAGE: "{text}"
                 
@@ -121,7 +122,7 @@ class GeminiAIIntegration:
         text_lower = text.lower()
         print(f"🔍 Simulated analysis for: '{text_lower}'")
         
-        # **FIXED: More varied responses based on content**
+        # More varied responses based on content
         if any(word in text_lower for word in ['kill myself', 'suicide', 'end my life', 'want to die']):
             return {
                 'emotions': 'desperate, hopeless, suicidal',
@@ -161,7 +162,6 @@ You're not broken - you're responding to something painful. The very fact you're
 
 Could we explore what that spark might need right now?"""
             ]
-            import random
             return {
                 'emotions': 'sad, depressed, hopeless',
                 'urgency': 'medium', 
@@ -185,7 +185,6 @@ What does this happiness feel like in your body? Noticing the physical sensation
 
 Would you like to explore what's contributing to these positive feelings?"""
             ]
-            import random
             return {
                 'emotions': 'happy, content, positive',
                 'urgency': 'low',
@@ -219,7 +218,6 @@ You don't need to perform or have everything sorted out. We can explore this spa
 
 What's present for you in this moment of hesitation?"""
             ]
-            import random
             return {
                 'emotions': 'uncertain, contemplative',
                 'urgency': 'low',
@@ -241,7 +239,6 @@ What's been most present for you lately?""",
 
 What would be most helpful for you right now - listening, exploring, or something else entirely?"""
             ]
-            import random
             return {
                 'emotions': 'reflective, engaged',
                 'urgency': 'low',
@@ -276,7 +273,7 @@ class MentalHealthAgent:
         """Main chat method - FIXED"""
         start_time = time.time()
         
-        # **FIXED: Always use AI analysis**
+        # Always use AI analysis
         ai_analysis = await self.ai.analyze_with_ai(message)
         
         processing_time = time.time() - start_time
@@ -295,7 +292,7 @@ class MentalHealthAgent:
         }
 
 # =============================================
-# 🎨 STREAMLIT APP - SIMPLIFIED AND FIXED
+# 🎨 STREAMLIT APP - FIXED ASYNC HANDLING
 # =============================================
 
 # Initialize the agent
@@ -413,11 +410,12 @@ if prompt := st.chat_input("How are you feeling today?"):
     with st.chat_message("user"):
         st.markdown(prompt)
     
-    # Generate AI response
+    # Generate AI response - FIXED: Use asyncio.run() to handle async
     with st.chat_message("assistant"):
         with st.spinner("🧠 Thinking..."):
             try:
-                result = await mental_health_agent.chat(prompt)
+                # FIXED: Proper async handling
+                result = asyncio.run(mental_health_agent.chat(prompt))
                 response_data = result['final_response']
                 response_text = response_data['response_text']
                 ai_used = response_data['ai_used']
@@ -437,7 +435,7 @@ if prompt := st.chat_input("How are you feeling today?"):
                 })
                 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Error: {str(e)}")
                 fallback = "I'm here to support you. Let's try that again."
                 st.markdown(fallback)
                 st.session_state.messages.append({
@@ -447,3 +445,12 @@ if prompt := st.chat_input("How are you feeling today?"):
                 })
     
     st.rerun()
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: #666;'>
+    <p><strong>🧠 MindMate AI Mental Health Support</strong></p>
+    <p><small>Always here to listen 🤗</small></p>
+</div>
+""", unsafe_allow_html=True)
