@@ -1,32 +1,27 @@
 import streamlit as st
-from src.mental_health_bot.emotion_analyzer import EmotionAnalyzer
-from src.mental_health_bot.agents.chat_agent import ChatAgent
+import asyncio
+from src.mental_health_bot.ai_orchestrator import AIAgentOrchestrator
 
-# Load your ML/NLP models
-emotion_model = EmotionAnalyzer()
-chat_agent = ChatAgent()
+orchestrator = AIAgentOrchestrator()
 
-st.set_page_config(page_title="MindMate - Mental Health AI", page_icon="🧠")
+st.set_page_config(page_title="MindMate AI", page_icon="🧠")
 
-st.title("🧠 MindMate - Mental Health Support Agent")
-st.write("Type how you feel below and the AI will respond with empathy and support.")
+st.title("🧠 MindMate Mental Health Support AI")
+st.write("Talk to me — I'm here to support you ❤️")
 
-# User input
 user_input = st.text_area("How are you feeling today?", height=150)
 
 if st.button("Send"):
     if user_input.strip() == "":
-        st.warning("Please type something.")
+        st.warning("Please enter a message.")
     else:
-        # Emotion detection
-        emotion = emotion_model.predict(user_input)
+        result = asyncio.run(orchestrator.process(user_input))
 
-        # AI response generation
-        response = chat_agent.generate_response(user_input, emotion)
+        st.subheader("🎭 Detected Emotions")
+        st.write(result["emotions"])
 
-        # Display
-        st.subheader("😔 Detected Emotion:")
-        st.write(f"**{emotion}**")
+        if result["crisis_level"] == "high":
+            st.error("⚠️ Crisis Situation Detected")
 
-        st.subheader("🤖 MindMate AI Response:")
-        st.write(response)
+        st.subheader("🤖 AI Response")
+        st.write(result["response"])
