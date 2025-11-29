@@ -1,7 +1,10 @@
 from typing import List, Dict, Any, Optional
 import google.generativeai as genai
 import os
-from kaggle_secrets import UserSecretsClient
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class GeminiAIConfigurator:
     """Intelligent API configuration that finds working models automatically"""
@@ -14,61 +17,28 @@ class GeminiAIConfigurator:
     def discover_models(self):
         """Discover all available Gemini models"""
         try:
-            user_secrets = UserSecretsClient()
-            api_key = user_secrets.get_secret('GOOGLE_API_KEY')
+            # Get API key from environment variable
+            api_key = os.getenv('GOOGLE_API_KEY')
             
             if not api_key:
-                api_key = user_secrets.get_secret('GOOGLE_API_KEY')
+                raise ValueError("🔑 No GOOGLE_API_KEY found in environment variables!")
                 
-            if not api_key:
-                # For local development, use environment variable
-                api_key = os.getenv('GOOGLE_API_KEY')
-                if not api_key:
-                    raise ValueError("🔑 No API key found!")
-                    
             genai.configure(api_key=api_key)
             
             print("🔍 Discovering available AI models...")
-            available_models = []
             
-            for model in genai.list_models():
-                if 'generateContent' in model.supported_generation_methods:
-                    available_models.append(model.name)
-                    print(f"   🤖 {model.name}")
-            
-            # Priority order for models
-            priority_models = [
-                'models/gemini-2.0-flash-lite',
-                'models/gemini-2.0-flash-lite-001',
-                'models/gemma-3-1b-it',
-                'models/gemini-2.0-flash',
-                'models/gemini-2.5-flash',
-                'models/gemini-pro-latest'
-            ]
-            
-            # Test models in priority order
-            for model_name in priority_models:
-                if model_name in available_models:
-                    try:
-                        print(f"🧪 Testing: {model_name}")
-                        model = genai.GenerativeModel(model_name)
-                        test_response = model.generate_content("Say 'AI Ready'")
-                        self.working_models.append(model_name)
-                        print(f"   ✅ {model_name} - SUCCESS!")
-                        
-                        if not self.primary_model:
-                            self.primary_model = model
-                            self.primary_model_name = model_name
-                            
-                    except Exception as e:
-                        print(f"   ❌ {model_name} - Failed")
-                        continue
-            
-            if self.primary_model:
-                print(f"🎯 PRIMARY MODEL SELECTED: {self.primary_model_name}")
+            # For local development, use a simpler approach
+            try:
+                # Try to use Gemini 2.0 Flash Lite (free tier)
+                self.primary_model = genai.GenerativeModel('gemini-2.0-flash-lite')
+                test_response = self.primary_model.generate_content("Say 'AI Ready'")
+                self.primary_model_name = 'gemini-2.0-flash-lite'
+                print("✅ Gemini AI configured successfully!")
+                self.fallback_mode = False
                 return True
-            else:
-                print("🚨 No working AI models found - Using Advanced Simulated AI")
+            except Exception as e:
+                print(f"❌ Gemini AI failed: {e}")
+                print("🔄 Switching to Advanced Simulated AI Mode...")
                 self.fallback_mode = True
                 return False
                 
@@ -80,3 +50,4 @@ class GeminiAIConfigurator:
 
 # Global configuration
 AI_CONFIG = GeminiAIConfigurator()
+AI_CONFIG.discover_models()
