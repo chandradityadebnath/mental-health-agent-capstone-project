@@ -10,11 +10,11 @@ import os
 nest_asyncio.apply()
 
 # =============================================
-# 🧠 GEMINI AI INTEGRATION WITH SESSION STATE
+# 🧠 GEMINI AI INTEGRATION - FIXED CRISIS DETECTION
 # =============================================
 
 class GeminiAIIntegration:
-    """Gemini AI Integration with session state management"""
+    """Gemini AI Integration with proper crisis detection"""
     
     def __init__(self):
         self.model = None
@@ -66,38 +66,41 @@ class GeminiAIIntegration:
             return False
     
     async def analyze_with_ai(self, text: str) -> dict:
-        """Analyze text with real Gemini AI"""
-        if self.model and not self.fallback_mode:
+        """Analyze text with real Gemini AI - FIXED TO ACTUALLY USE AI"""
+        print(f"🔍 Analyzing: {text}")  # Debug
+        
+        # Check if we should use real AI
+        if self.model and not self.fallback_mode and st.session_state.api_key_connected:
             try:
+                # **FIXED: Better prompt for crisis situations**
                 prompt = f"""
-                You are a compassionate mental health support assistant. Analyze this user message and provide emotional support.
+                USER MESSAGE: "{text}"
                 
-                User Message: "{text}"
+                As a mental health support assistant, analyze this message and provide:
                 
-                Please provide:
-                1. Primary emotions detected (comma-separated)
-                2. Urgency level (low/medium/high) 
-                3. Key support needs
-                4. A compassionate, therapeutic response (2-3 paragraphs)
+                1. EMOTIONS: Comma-separated primary emotions
+                2. URGENCY: low/medium/high based on suicide risk
+                3. NEEDS: Key support needs
+                4. RESPONSE: A compassionate, appropriate response
                 
-                Format your response as:
-                EMOTIONS: [emotions]
-                URGENCY: [urgency]
-                NEEDS: [needs]
-                RESPONSE: [your compassionate response here]
+                If the user mentions suicide, self-harm, or wanting to die, respond with URGENCY: high and provide immediate crisis resources.
                 """
                 
                 response = self.model.generate_content(prompt)
+                print(f"🤖 AI Response: {response.text}")  # Debug
                 return self._parse_ai_response(response.text)
                 
             except Exception as e:
-                st.error(f"❌ AI analysis failed: {e}")
+                print(f"❌ AI Error: {e}")  # Debug
                 return self._simulated_analysis(text)
         else:
+            print("🔄 Using simulated AI")  # Debug
             return self._simulated_analysis(text)
     
     def _parse_ai_response(self, ai_text: str) -> dict:
         """Parse AI response into structured data"""
+        print(f"📝 Parsing AI response: {ai_text}")  # Debug
+        
         lines = ai_text.split('\n')
         result = {
             'emotions': 'concerned',
@@ -121,72 +124,102 @@ class GeminiAIIntegration:
         return result
     
     def _simulated_analysis(self, text: str) -> dict:
-        """Advanced simulated AI analysis"""
+        """Advanced simulated AI analysis - FIXED CRISIS DETECTION"""
         text_lower = text.lower()
+        print(f"🔍 Simulated analysis for: {text_lower}")  # Debug
         
-        if any(word in text_lower for word in ['die', 'suicide', 'kill myself', 'end it all', 'not worth living']):
+        # **FIXED: Better crisis detection**
+        if any(word in text_lower for word in ['kill myself', 'suicide', 'end my life', 'want to die', 'not worth living']):
+            print("🚨 HIGH CRISIS DETECTED")  # Debug
             return {
                 'emotions': 'desperate, hopeless, suicidal',
                 'urgency': 'high',
                 'needs': 'crisis_intervention',
                 'response': """🚨 **I'm deeply concerned about what you're sharing**
 
-I hear the pain and hopelessness in your words, and I want you to know that your life is precious. What you're experiencing right now is overwhelming, but these intense feelings, while very real, are temporary.
+I hear that you're feeling hopeless and considering ending your life. Please know that your life is precious and there are people who want to help you right now.
 
-**Please reach out right now:**
-• Call 988 - Suicide & Crisis Lifeline (24/7)
-• Text HOME to 741741 - Crisis Text Line
-• Call 911 if you're in immediate danger
+**IMMEDIATE CRISIS SUPPORT:**
+• 📞 **Call 988** - Suicide & Crisis Lifeline (24/7)
+• 📱 **Text HOME** to 741741 - Crisis Text Line
+• 🚑 **Call 911** if you're in immediate danger
 
-You don't have to face this alone. There are people trained to help you through this exact moment. Your safety is the most important thing right now.""",
+You don't have to face this alone. These intense feelings, while overwhelming, are temporary. Professional help is available right now.
+
+**Please reach out immediately.** Your safety is the most important thing.""",
                 'ai_generated': False
             }
-        elif any(word in text_lower for word in ['anxious', 'panic', 'overwhelmed', 'heart racing', 'cant breathe']):
+        elif any(word in text_lower for word in ['sad', 'depressed', 'hopeless', 'empty', 'crying']):
+            print("🟡 MEDIUM CRISIS DETECTED")  # Debug
+            return {
+                'emotions': 'sad, depressed, hopeless',
+                'urgency': 'medium', 
+                'needs': 'emotional_support',
+                'response': """🤗 **I hear the pain in your words**
+
+That heavy, hopeless feeling can be incredibly overwhelming. Thank you for having the courage to share what you're going through.
+
+**You're not alone in this.** What you're feeling is valid, and it takes strength to acknowledge when we're struggling.
+
+**Some gentle suggestions:**
+- Be extra kind to yourself today
+- Reach out to one trusted person
+- Try a small comforting activity
+- Remember: feelings are temporary, even when they feel permanent
+
+Would you like to talk more about what's been weighing on you?""",
+                'ai_generated': False
+            }
+        elif any(word in text_lower for word in ['anxious', 'panic', 'overwhelmed', 'stress']):
+            print("🟡 ANXIETY DETECTED")  # Debug
             return {
                 'emotions': 'anxious, overwhelmed, scared',
                 'urgency': 'medium',
                 'needs': 'anxiety_management', 
                 'response': """💨 **I understand how overwhelming anxiety can feel**
 
-That racing heart, difficulty breathing, and sense of losing control is your body's alarm system activated. While it feels terrifying, this is a false alarm - you are safe in this moment.
+That racing mind and physical tension is your body's alarm system. While it feels scary, you are safe in this moment.
 
-**Let's ground ourselves together:**
-1. **Breathe with me**: Inhale for 4 counts, hold for 4, exhale for 6. Let's do this 3 times.
-2. **5-4-3-2-1 Grounding**: Name 5 things you see, 4 things you can touch, 3 things you hear, 2 things you smell, 1 thing you can taste.
-3. **Remember**: This panic will pass. You've gotten through anxious moments before.
+**Let's try some grounding together:**
+1. **Breathe with me**: Inhale 4 counts, hold 4, exhale 6
+2. **5-4-3-2-1**: 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste
+3. **Remember**: This anxiety will pass. You've gotten through anxious moments before.
 
 You're stronger than this feeling, even when it doesn't seem like it.""",
                 'ai_generated': False
             }
         else:
+            print("🟢 LOW CRISIS - GENERAL RESPONSE")  # Debug
             return {
                 'emotions': 'reflective, contemplative',
                 'urgency': 'low',
                 'needs': 'emotional_support',
-                'response': """💫 **Thank you for sharing what's on your mind**
+                'response': """💫 **Thank you for sharing**
 
-It takes courage to reach out and put your experiences into words. I'm here to listen without judgment, and whatever you're feeling right now is completely valid.
+I appreciate you opening up about what's on your mind. It takes courage to reach out, and I'm here to listen without judgment.
 
-Sometimes just speaking our truth aloud can help lighten the load, even if just a little. You don't have to have everything figured out, and you don't have to face anything alone.
+Whatever you're experiencing right now is valid, and you don't have to face it alone. Sometimes just putting our experiences into words can help lighten the load.
 
 **I'm here to listen** and support you in whatever way feels helpful. Would you like to tell me more about what's been happening?""",
                 'ai_generated': False
             }
 
 # =============================================
-# 🧠 MENTAL HEALTH AGENT SYSTEM
+# 🧠 MENTAL HEALTH AGENT SYSTEM - FIXED
 # =============================================
 
 class MentalHealthAgent:
-    """Mental Health Agent with session state management"""
+    """Mental Health Agent with proper crisis handling"""
     
     def __init__(self):
         self.ai = GeminiAIIntegration()
+        
+        # **FIXED: More comprehensive crisis keywords**
         self.crisis_keywords = {
-            'suicidal': ['kill myself', 'end it all', 'suicide', 'want to die', 'not worth living'],
-            'self_harm': ['cut myself', 'self harm', 'hurt myself', 'bleeding'],
-            'panic': ['panic attack', 'cant breathe', 'heart racing', 'losing control'],
-            'depression': ['hopeless', 'empty inside', 'no point', 'cant get out of bed']
+            'suicidal': ['kill myself', 'suicide', 'end my life', 'want to die', 'not worth living', 'end it all', 'better off dead'],
+            'self_harm': ['cut myself', 'self harm', 'hurt myself', 'bleeding', 'harm myself'],
+            'panic': ['panic attack', 'cant breathe', 'heart racing', 'losing control', 'going crazy'],
+            'depression': ['hopeless', 'empty inside', 'no point', 'cant get out of bed', 'nothing matters']
         }
         
         # Initialize session state if not exists
@@ -202,11 +235,6 @@ class MentalHealthAgent:
                 "988 Suicide Prevention": "Call 988 - Available 24/7",
                 "Crisis Text Line": "Text HOME to 741741", 
                 "Emergency Services": "Call 911 for immediate help"
-            },
-            "therapy": {
-                "BetterHelp": "Online therapy platform",
-                "Psychology Today": "Find local therapists",
-                "Open Path Collective": "Affordable therapy options"
             }
         }
     
@@ -218,24 +246,18 @@ class MentalHealthAgent:
         """Check if AI is connected"""
         return st.session_state.api_key_connected
     
-    def get_ai_status(self) -> str:
-        """Get AI connection status"""
-        if st.session_state.api_key_connected:
-            return f"✅ Connected to {st.session_state.ai_model}"
-        else:
-            return "❌ Not Connected"
-    
     async def chat(self, message: str, user_id: str = "anonymous") -> dict:
-        """Main chat method"""
+        """Main chat method - FIXED TO USE AI PROPERLY"""
         start_time = time.time()
+        print(f"💬 Processing: {message}")  # Debug
         
-        # AI Analysis (real or simulated)
+        # **FIXED: Always use AI analysis first if connected**
         ai_analysis = await self.ai.analyze_with_ai(message)
         
-        # Crisis detection
+        # **FIXED: Enhanced crisis detection**
         crisis_data = self._detect_crisis(message)
         
-        # Generate enhanced response
+        # **FIXED: Generate appropriate response based on analysis**
         response_data = self._generate_enhanced_response(message, crisis_data, ai_analysis)
         
         processing_time = time.time() - start_time
@@ -250,20 +272,25 @@ class MentalHealthAgent:
         }
     
     def _detect_crisis(self, text: str) -> dict:
-        """Detect crisis level from text"""
+        """Enhanced crisis detection - FIXED"""
         text_lower = text.lower()
+        print(f"🔍 Crisis detection for: {text_lower}")  # Debug
         
         crisis_level = "low"
         detected_issues = []
         
+        # **FIXED: Better keyword matching**
         for category, keywords in self.crisis_keywords.items():
-            if any(keyword in text_lower for keyword in keywords):
-                detected_issues.append(category)
-                if category in ['suicidal', 'self_harm']:
-                    crisis_level = "high"
-                elif crisis_level != "high" and category in ['panic']:
-                    crisis_level = "medium"
+            for keyword in keywords:
+                if keyword in text_lower:
+                    detected_issues.append(category)
+                    if category in ['suicidal', 'self_harm']:
+                        crisis_level = "high"
+                        break  # Immediate high crisis
+                    elif crisis_level != "high" and category in ['panic']:
+                        crisis_level = "medium"
         
+        print(f"🚨 Crisis level: {crisis_level}")  # Debug
         return {
             "crisis_level": crisis_level,
             "detected_issues": detected_issues,
@@ -271,14 +298,17 @@ class MentalHealthAgent:
         }
     
     def _generate_enhanced_response(self, user_message: str, crisis_data: dict, ai_analysis: dict) -> dict:
-        """Generate enhanced response"""
+        """Generate enhanced response - FIXED"""
         crisis_level = crisis_data['crisis_level']
         emotions = ai_analysis['emotions']
         urgency = ai_analysis['urgency']
         ai_response = ai_analysis['response']
         
-        # Add crisis resources if needed
+        print(f"🎯 Generating response - Crisis: {crisis_level}, AI: {ai_analysis['ai_generated']}")  # Debug
+        
+        # **FIXED: Use AI response directly, only enhance for high crisis**
         if crisis_level == 'high':
+            # Add crisis resources to AI response
             enhanced_response = ai_response + self._get_crisis_resources()
         else:
             enhanced_response = ai_response
@@ -298,12 +328,13 @@ class MentalHealthAgent:
         """Get crisis resources text"""
         return """
 
+---
 🚨 **IMMEDIATE CRISIS SUPPORT:**
 • 📞 **Call 988** - Suicide & Crisis Lifeline (24/7)
-• 📱 **Text HOME** to 741741 - Crisis Text Line
+• 📱 **Text HOME** to 741741 - Crisis Text Line  
 • 🚑 **Call 911** - Emergency Services
 
-Your safety is the absolute priority. Please reach out now."""
+**Your safety is the absolute priority. Please reach out now.**"""
     
     def _get_relevant_resources(self, crisis_level: str) -> dict:
         """Get relevant resources"""
@@ -313,7 +344,7 @@ Your safety is the absolute priority. Please reach out now."""
             return self.resources
 
 # =============================================
-# 🎨 STREAMLIT APP WITH FIXED SESSION STATE
+# 🎨 STREAMLIT APP - FIXED
 # =============================================
 
 # Initialize the agent
@@ -337,38 +368,26 @@ st.markdown("""
         margin-bottom: 1rem;
         font-weight: bold;
     }
-    .api-section {
-        background-color: #f0f2f6;
+    .crisis-high {
+        border-left: 6px solid #ff4b4b;
+        background-color: #ffe6e6;
         padding: 1.5rem;
         border-radius: 10px;
         margin: 1rem 0;
-        border-left: 4px solid #1f77b4;
     }
-    .ai-status {
-        text-align: center;
-        padding: 0.8rem;
+    .crisis-medium {
+        border-left: 6px solid #ffa500;
+        background-color: #fff4e6;
+        padding: 1.5rem;
         border-radius: 10px;
         margin: 1rem 0;
-        font-weight: bold;
-        font-size: 1.1rem;
     }
-    .ai-active {
+    .crisis-low {
+        border-left: 6px solid #00cc96;
         background-color: #e6f7f2;
-        color: #00cc96;
-        border: 2px solid #00cc96;
-    }
-    .ai-simulated {
-        background-color: #fff4e6;
-        color: #ffa500;
-        border: 2px solid #ffa500;
-    }
-    .connected-badge {
-        background-color: #00cc96;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: bold;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -377,7 +396,7 @@ st.markdown("""
 st.markdown('<div class="main-header">🧠 MindMate AI</div>', unsafe_allow_html=True)
 
 # API Key Section
-with st.expander("🔑 Connect Your Google AI API Key", expanded=not st.session_state.api_key_connected):
+with st.expander("🔑 Connect Your Google AI API Key", expanded=not st.session_state.get('api_key_connected', False)):
     st.markdown("""
     **Get your FREE API key:**
     1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
@@ -388,39 +407,24 @@ with st.expander("🔑 Connect Your Google AI API Key", expanded=not st.session_
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        # Use session state to remember the API key input
-        if 'api_key_input' not in st.session_state:
-            st.session_state.api_key_input = ""
-            
         api_key = st.text_input(
             "Google AI API Key:",
-            value=st.session_state.api_key_input,
             type="password",
             placeholder="Enter your API key here...",
             help="Get free API key from https://makersuite.google.com/app/apikey",
-            key="api_key_input_widget"
+            key="api_key_input"
         )
     
     with col2:
-        st.write("")  # Spacing
-        st.write("")  # Spacing
+        st.write("") 
+        st.write("") 
         connect_button = st.button("🔗 Connect AI", use_container_width=True, type="primary")
-        
-        # Disconnect button if connected
-        if st.session_state.api_key_connected:
-            if st.button("🔓 Disconnect", use_container_width=True, type="secondary"):
-                st.session_state.api_key_connected = False
-                st.session_state.api_key = None
-                st.session_state.api_key_input = ""
-                st.session_state.ai_model = None
-                st.rerun()
     
     if connect_button:
         if api_key:
             with st.spinner("Connecting to Gemini AI..."):
                 success = mental_health_agent.configure_ai(api_key)
                 if success:
-                    st.session_state.api_key_input = api_key
                     st.success("✅ AI Connected Successfully!")
                     st.rerun()
                 else:
@@ -428,170 +432,85 @@ with st.expander("🔑 Connect Your Google AI API Key", expanded=not st.session_
         else:
             st.warning("⚠️ Please enter an API key")
 
-# AI Status Display - FIXED: Now uses session state
-if st.session_state.api_key_connected:
-    st.markdown('<div class="ai-status ai-active">🤖 REAL GEMINI AI ACTIVE</div>', unsafe_allow_html=True)
-    st.success(f"✅ Connected to: {st.session_state.ai_model}")
+# AI Status Display
+if st.session_state.get('api_key_connected', False):
+    st.success(f"🤖 **REAL GEMINI AI ACTIVE** - Connected to: {st.session_state.get('ai_model', 'Unknown')}")
 else:
-    st.markdown('<div class="ai-status ai-simulated">🔄 ADVANCED SIMULATED AI ACTIVE</div>', unsafe_allow_html=True)
-    st.info("💡 Connect your API key above for real AI responses")
-
-# Sidebar
-with st.sidebar:
-    st.header("🤖 AI System Status")
-    
-    if st.session_state.api_key_connected:
-        st.success("**✅ Real Gemini AI Active**")
-        st.metric("AI Mode", "Real AI")
-        st.metric("Model", st.session_state.ai_model)
-        st.metric("API Status", "Connected")
-        
-        # Show masked API key
-        if st.session_state.api_key:
-            masked_key = st.session_state.api_key[:8] + "..." + st.session_state.api_key[-4:]
-            st.code(f"API: {masked_key}")
-    else:
-        st.warning("**🔄 Advanced Simulated AI**")
-        st.metric("AI Mode", "Simulated")
-        st.metric("API Status", "Not Connected")
-    
-    st.header("🚨 Crisis Support")
-    st.error("""
-    **Emergency Contacts:**
-    - 🆘 **Call 988** (24/7 Crisis Line)
-    - 📱 **Text HOME** to 741741
-    - 🚑 **Call 911** for emergencies
-    """)
-    
-    st.header("💡 Quick Examples")
-    example_messages = [
-        "I've been feeling really sad lately",
-        "I'm having a panic attack right now",
-        "I feel completely alone",
-        "I'm stressed about everything"
-    ]
-    
-    for example in example_messages:
-        if st.button(example, use_container_width=True):
-            # This would need to be handled in the main chat logic
-            st.info("Type this message in the chat below")
+    st.info("🔄 **ADVANCED SIMULATED AI ACTIVE** - Connect API key for real AI")
 
 # Main chat interface
-col1, col2 = st.columns([2, 1])
+st.subheader("💬 Chat with MindMate")
 
-with col1:
-    st.subheader("💬 Chat with MindMate")
-    
-    # Initialize session state for messages
-    if 'messages' not in st.session_state:
-        st.session_state.messages = []
-    
-    if 'user_id' not in st.session_state:
-        import random
-        st.session_state.user_id = f"user_{random.randint(10000, 99999)}"
-    
-    # Display chat history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
+# Initialize session state for messages
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat history
+for message in st.session_state.messages:
+    if message["role"] == "user":
+        with st.chat_message("user"):
             st.markdown(message["content"])
+    else:
+        crisis_level = message.get("crisis_level", "low")
+        css_class = f"crisis-{crisis_level}"
+        with st.chat_message("assistant"):
+            st.markdown(f'<div class="{css_class}">{message["content"]}</div>', unsafe_allow_html=True)
             
-            # Show AI status for assistant messages
-            if message["role"] == "assistant" and "ai_used" in message:
-                if message["ai_used"]:
+            # Show AI status
+            if message.get("ai_used"):
+                st.caption("🤖 Generated by Real Gemini AI")
+            else:
+                st.caption("🔄 Advanced Simulated Response")
+
+# Chat input
+if prompt := st.chat_input("How are you feeling today?"):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    # Show user message immediately
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    # Generate AI response
+    with st.chat_message("assistant"):
+        with st.spinner("🧠 Analyzing with AI..."):
+            try:
+                # Process message
+                result = asyncio.run(mental_health_agent.chat(prompt))
+                
+                # Extract response
+                response_data = result['final_response']
+                response_text = response_data['response_text']
+                ai_used = response_data['ai_used']
+                crisis_level = response_data.get('crisis_level', 'low')
+                
+                # Display with appropriate styling
+                css_class = f"crisis-{crisis_level}"
+                st.markdown(f'<div class="{css_class}">{response_text}</div>', unsafe_allow_html=True)
+                
+                # Show AI usage
+                if ai_used:
                     st.caption("🤖 Generated by Real Gemini AI")
                 else:
                     st.caption("🔄 Advanced Simulated Response")
+                
+                # Add to history
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": response_text,
+                    "ai_used": ai_used,
+                    "crisis_level": crisis_level
+                })
+                
+            except Exception as e:
+                st.error(f"System error: {str(e)}")
+                fallback = "🤗 I'm here to listen and support you. Your feelings are valid and important."
+                st.markdown(fallback)
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": fallback,
+                    "ai_used": False,
+                    "crisis_level": "low"
+                })
     
-    # Chat input
-    if prompt := st.chat_input("How are you feeling today?"):
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        
-        # Show user message
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        
-        # Generate AI response
-        with st.chat_message("assistant"):
-            with st.spinner("🧠 Analyzing with AI..."):
-                try:
-                    # Process message
-                    result = asyncio.run(mental_health_agent.chat(prompt, st.session_state.user_id))
-                    
-                    # Extract response
-                    response_data = result['final_response']
-                    response_text = response_data['response_text']
-                    ai_used = response_data['ai_used']
-                    
-                    # Display response
-                    st.markdown(response_text)
-                    
-                    # Show AI usage
-                    if ai_used:
-                        st.caption("🤖 Generated by Real Gemini AI")
-                    else:
-                        st.caption("🔄 Advanced Simulated AI")
-                    
-                    # Add to history
-                    st.session_state.messages.append({
-                        "role": "assistant", 
-                        "content": response_text,
-                        "ai_used": ai_used,
-                        "crisis_level": response_data.get('crisis_level', 'low')
-                    })
-                    
-                except Exception as e:
-                    st.error(f"System error: {str(e)}")
-                    fallback = "🤗 I'm here to listen and support you. Your feelings are valid and important."
-                    st.markdown(fallback)
-                    st.session_state.messages.append({
-                        "role": "assistant", 
-                        "content": fallback,
-                        "ai_used": False
-                    })
-
-with col2:
-    st.subheader("📊 Session Info")
-    
-    if st.session_state.messages:
-        st.metric("Total Messages", len(st.session_state.messages))
-        
-        # Count AI vs simulated
-        ai_count = len([m for m in st.session_state.messages if m.get("ai_used")])
-        sim_count = len([m for m in st.session_state.messages if m.get("ai_used") == False])
-        
-        st.metric("AI Responses", ai_count)
-        st.metric("Simulated Responses", sim_count)
-    
-    st.subheader("🔧 API Status")
-    
-    # FIXED: Now properly shows connection status
-    if st.session_state.api_key_connected:
-        st.success("**✅ API Key: CONNECTED**")
-        if st.session_state.ai_model:
-            st.metric("AI Model", st.session_state.ai_model)
-        
-        # Disconnect button
-        if st.button("🔓 Disconnect API", use_container_width=True, type="secondary"):
-            st.session_state.api_key_connected = False
-            st.session_state.api_key = None
-            st.session_state.api_key_input = ""
-            st.session_state.ai_model = None
-            st.rerun()
-    else:
-        st.warning("**❌ API Key: NOT CONNECTED**")
-        st.info("Connect your API key above")
-    
-    # Clear chat button
-    if st.button("🗑️ Clear Chat History", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-
-# Footer
-st.markdown("---")
-st.markdown("""
-<div style='text-align: center; color: #666;'>
-    <p><strong>🧠 MindMate AI Mental Health Support</strong></p>
-    <p><small>Connect your Google AI API key for enhanced AI-powered support</small></p>
-</div>
-""", unsafe_allow_html=True)
+    st.rerun()
