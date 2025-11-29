@@ -2,7 +2,7 @@
 Emotion Analysis Agent
 """
 
-from typing import List, Dict  # <-- Fixed import
+from typing import List, Dict
 import re
 
 class EmotionAnalysisAgent:
