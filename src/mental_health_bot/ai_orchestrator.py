@@ -1,12 +1,7 @@
-"""
-High-level orchestrator for a chatbot-style AI response.
-"""
-
 import asyncio
-from src.agents.crisis_detector import CrisisDetectionAgent
-from src.agents.emotion_analyzer import EmotionAnalysisAgent
-from src.agents.chat_agent import ChatAgent
-
+from mental_health_bot.agents.crisis_detector import CrisisDetectionAgent
+from mental_health_bot.agents.emotion_analyzer import EmotionAnalysisAgent
+from mental_health_bot.agents.chat_agent import ChatAgent
 
 class AIAgentOrchestrator:
 
