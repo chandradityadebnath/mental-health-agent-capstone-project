@@ -1,52 +1,45 @@
-import asyncio
-from typing import Dict
-from datetime import datetime
+"""
+Emotion Analysis Agent
+"""
+
+from typing import List, Dict  # <-- Fixed import
+import re
 
 class EmotionAnalysisAgent:
-    """Specialized agent for emotion analysis and sentiment understanding"""
-    
+    """Analyzes user messages for emotional content"""
+
     def __init__(self):
-        self.emotion_patterns = {
-            'anxiety': ['anxious', 'worried', 'nervous', 'panic'],
-            'depression': ['sad', 'depressed', 'hopeless', 'empty'],
-            'anger': ['angry', 'furious', 'mad', 'frustrated'],
-            'calm': ['calm', 'peaceful', 'relaxed', 'content']
+        self.emotion_keywords = {
+            "sad": ["sad", "unhappy", "depressed", "down"],
+            "happy": ["happy", "joyful", "excited", "glad"],
+            "anxious": ["anxious", "nervous", "worried", "stressed"],
+            "angry": ["angry", "mad", "frustrated"]
         }
-    
-    async def analyze(self, text: str, context: Dict = None) -> Dict:
-        """Analyze emotional content of text"""
-        await asyncio.sleep(0.1)
-        
-        text_lower = text.lower()
-        detected_emotions = []
-        
-        for emotion, patterns in self.emotion_patterns.items():
-            if any(pattern in text_lower for pattern in patterns):
-                detected_emotions.append(emotion)
-        
+
+    async def analyze(self, message: str) -> Dict:
+        detected_emotions = self._detect_emotions(message)
+        support_needs = self._determine_support_needs(detected_emotions)
         return {
-            "detected_emotions": detected_emotions or ['neutral'],
-            "emotional_intensity": self._calculate_intensity(text),
-            "support_needs": self._determine_support_needs(detected_emotions),
-            "agent_type": "emotion_analysis",
-            "timestamp": datetime.now().isoformat()
+            "detected_emotions": detected_emotions,
+            "support_needs": support_needs
         }
-    
-    def _calculate_intensity(self, text: str) -> float:
-        """Calculate emotional intensity from text features"""
-        intensity_indicators = text.count('!') + text.count('very')
-        return min(intensity_indicators / 10, 1.0)
-    
+
+    def _detect_emotions(self, message: str) -> List[str]:
+        emotions_found = []
+        for emotion, keywords in self.emotion_keywords.items():
+            for kw in keywords:
+                if re.search(rf"\b{kw}\b", message, re.IGNORECASE):
+                    emotions_found.append(emotion)
+        return list(set(emotions_found))  # Remove duplicates
+
     def _determine_support_needs(self, emotions: List[str]) -> List[str]:
-        """Determine support needs based on emotions"""
-        needs_mapping = {
-            'anxiety': ['grounding_techniques', 'breathing_exercises'],
-            'depression': ['emotional_support', 'activity_planning'],
-            'anger': ['anger_management', 'emotional_regulation']
-        }
-        
         needs = []
-        for emotion in emotions:
-            needs.extend(needs_mapping.get(emotion, []))
-        
-        return list(set(needs)) or ['general_support']
+        if "sad" in emotions:
+            needs.append("emotional_support")
+        if "anxious" in emotions:
+            needs.append("calming_guidance")
+        if "angry" in emotions:
+            needs.append("anger_management")
+        if "happy" in emotions:
+            needs.append("positive_reinforcement")
+        return list(set(needs)) or ["general_support"]
