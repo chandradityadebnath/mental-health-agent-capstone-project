@@ -150,7 +150,7 @@ class GeminiAIIntegration:
         
         # **HIGH CRISIS: Suicide/Self-harm**
         suicide_keywords = ['kill', 'suicide', 'end', 'die', 'dead', 'harm', 'hurt']
-        suicide_phrases = ['kill myself', 'kill myself', 'end my life', 'want to die', 'not worth living']
+        suicide_phrases = ['kill myself', 'end my life', 'want to die', 'not worth living']
         
         # Check for suicide phrases first
         for phrase in suicide_phrases:
@@ -534,11 +534,11 @@ if prompt := st.chat_input("How are you feeling today?"):
                 else:
                     st.caption("🔄 Advanced Simulated Response")
                 
-                # Add to history
+                # **FIXED: CORRECTED SYNTAX ERROR - Missing quote**
                 st.session_state.messages.append({
                     "role": "assistant", 
                     "content": response_text,
-                    "ai_used': ai_used,
+                    "ai_used": ai_used,
                     "crisis_level": crisis_level
                 })
                 
