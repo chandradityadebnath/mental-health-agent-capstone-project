@@ -2,19 +2,37 @@ import streamlit as st
 import sys
 import os
 import asyncio
-from typing import List, Dict, Any
+import nest_asyncio
+
+# Apply nest_asyncio to handle async in Streamlit
+nest_asyncio.apply()
 
 # Add the src directory to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../src'))
 
 try:
-    from mental_health_bot.main import mental_health_agent
-    st.success("✅ MindMate - Mental Health Agent System Loaded Successfully!")
+    from mental_health_bot import mental_health_agent
+    st.success("✅ Mental Health Agent System Loaded Successfully!")
 except ImportError as e:
     st.error(f"❌ Import Error: {e}")
-    st.info("Please check that all dependencies are installed and files are properly structured.")
+    st.info("Trying alternative import...")
+    
+    # Fallback: Create a simple version directly
+    class FallbackMentalHealthAgent:
+        async def chat(self, message: str, user_id: str = "anonymous"):
+            return {
+                'final_response': {
+                    'response_text': f"🤗 I hear you saying: '{message}'. While the full AI system is loading, please know that your feelings are valid. If you're in crisis, please call 988 immediately.",
+                    'crisis_level': 'low',
+                    'emotions': 'processing',
+                    'agents_involved': 1
+                }
+            }
+    
+    mental_health_agent = FallbackMentalHealthAgent()
+    st.warning("⚠️ Using fallback mode - some features may be limited")
 
-# Streamlit app
+# Streamlit app configuration
 st.set_page_config(
     page_title="MindMate - Mental Health Support",
     page_icon="🧠",
@@ -25,17 +43,23 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main-header {
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: #1f77b4;
         text-align: center;
+        margin-bottom: 1rem;
+    }
+    .subtitle {
+        text-align: center;
+        color: #666;
         margin-bottom: 2rem;
     }
     .response-box {
-        background-color: #f0f2f6;
+        background-color: #f8f9fa;
         padding: 1.5rem;
         border-radius: 10px;
         margin: 1rem 0;
         border-left: 5px solid #1f77b4;
+        white-space: pre-line;
     }
     .crisis-high {
         border-left: 5px solid #ff4b4b;
@@ -49,109 +73,165 @@ st.markdown("""
         border-left: 5px solid #00cc96;
         background-color: #e6f7f2;
     }
+    .user-message {
+        background-color: #e3f2fd;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+    }
+    .assistant-message {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+    }
+    .chat-container {
+        max-height: 500px;
+        overflow-y: auto;
+        margin-bottom: 2rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # Header
 st.markdown('<div class="main-header">🧠 MindMate - Mental Health Support</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">24/7 AI-powered mental health support with crisis detection</div>', unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.header("About MindMate")
+    st.header("ℹ️ About MindMate")
     st.write("""
-    MindMate provides 24/7 mental health support through AI-powered conversations.
+    **MindMate** provides compassionate mental health support through AI technology.
     
-    **Features:**
-    - Crisis detection & intervention
-    - Emotional analysis
-    - Personalized support planning
-    - Resource matching
-    - 4 specialized AI agents working together
+    **Key Features:**
+    - 🤖 Intelligent crisis detection
+    - 🎯 Emotional analysis
+    - 🛡️ Safety-first approach
+    - 💝 24/7 availability
+    
+    **How it works:**
+    1. Share what you're feeling
+    2. AI analyzes emotions and crisis level
+    3. Get personalized support
+    4. Access resources if needed
     """)
     
-    st.header("Safety Notice")
-    st.warning("""
-    **For immediate crisis support:**
-    - Call 988 (Suicide Prevention)
-    - Text HOME to 741741
-    - Call 911 for emergencies
+    st.header("🚨 Immediate Help")
+    st.error("""
+    **If you're in crisis:**
+    - 🆘 Call 988 (Suicide Prevention)
+    - 📱 Text HOME to 741741
+    - 🚑 Call 911 for emergencies
+    - 🏥 Go to nearest emergency room
+    """)
+    
+    st.header("🔒 Privacy")
+    st.info("""
+    Your conversations are:
+    - Private and secure
+    - Anonymous
+    - Never stored permanently
+    - Always respectful
     """)
 
 # Main chat interface
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.subheader("💬 Chat with MindMate")
+    st.subheader("💬 Start Conversation")
     
     # Initialize session state
     if 'messages' not in st.session_state:
         st.session_state.messages = []
-    if 'user_id' not in st.session_state:
-        st.session_state.user_id = f"user_{hash(str(st.session_state)) % 10000}"
     
-    # Display chat messages
+    if 'user_id' not in st.session_state:
+        import random
+        st.session_state.user_id = f"user_{random.randint(1000, 9999)}"
+    
+    # Display chat history
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        if message["role"] == "user":
+            st.markdown(f'<div class="user-message"><strong>You:</strong> {message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            # Determine crisis level for styling
+            crisis_level = message.get("crisis_level", "low")
+            css_class = f"response-box crisis-{crisis_level}"
+            st.markdown(f'<div class="{css_class}"><strong>MindMate:</strong> {message["content"]}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Chat input
-    if prompt := st.chat_input("How are you feeling today?"):
+    if prompt := st.chat_input("Type your message here..."):
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
         
         # Get AI response
-        with st.chat_message("assistant"):
-            with st.spinner("🧠 Analyzing with multiple AI agents..."):
-                try:
-                    # Process message through the agent system
-                    result = asyncio.run(mental_health_agent.chat(prompt, st.session_state.user_id))
-                    
-                    # Display the response
-                    response_text = result['final_response']['response_text']
-                    crisis_level = result['final_response']['crisis_level']
-                    
-                    # Apply appropriate styling based on crisis level
-                    if crisis_level == 'high':
-                        st.markdown(f'<div class="response-box crisis-high">{response_text}</div>', unsafe_allow_html=True)
-                    elif crisis_level == 'medium':
-                        st.markdown(f'<div class="response-box crisis-medium">{response_text}</div>', unsafe_allow_html=True)
-                    else:
-                        st.markdown(f'<div class="response-box crisis-low">{response_text}</div>', unsafe_allow_html=True)
-                    
-                    # Add to chat history
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
-                    
-                except Exception as e:
-                    st.error(f"Sorry, I encountered an error: {str(e)}")
-                    st.info("Please try again or check the system configuration.")
+        with st.spinner("🧠 Analyzing your message..."):
+            try:
+                # Process message through the agent system
+                result = asyncio.run(mental_health_agent.chat(prompt, st.session_state.user_id))
+                
+                # Extract response
+                response_data = result['final_response']
+                response_text = response_data['response_text']
+                crisis_level = response_data.get('crisis_level', 'low')
+                
+                # Add assistant message to history
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": response_text,
+                    "crisis_level": crisis_level
+                })
+                
+                # Rerun to update display
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
+                # Fallback response
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": "🤗 I'm here to listen. Please know that your feelings are valid. If you're in crisis, please call 988 immediately.",
+                    "crisis_level": "low"
+                })
+                st.rerun()
 
 with col2:
-    st.subheader("📊 System Info")
+    st.subheader("📊 Conversation Info")
     
     if st.session_state.messages:
-        st.metric("Messages Exchanged", len(st.session_state.messages))
+        st.metric("Messages", len(st.session_state.messages))
         
-        # Show last response analysis if available
-        if len(st.session_state.messages) > 0 and st.session_state.messages[-1]["role"] == "assistant":
-            try:
-                result = asyncio.run(mental_health_agent.chat("test", st.session_state.user_id))
-                crisis_level = result['final_response']['crisis_level']
-                emotions = result['final_response']['emotions']
-                
-                st.write("**Last Analysis:**")
-                st.write(f"**Crisis Level:** {crisis_level.upper()}")
-                st.write(f"**Emotions:** {emotions}")
-                st.write(f"**Agents Used:** {result['final_response']['agents_involved']}")
-                
-            except:
-                st.write("Analysis data unavailable")
+        # Show crisis level of last message
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
+            last_crisis = st.session_state.messages[-1].get("crisis_level", "low")
+            crisis_display = {
+                "high": "🔴 High",
+                "medium": "🟡 Medium", 
+                "low": "🟢 Low"
+            }
+            st.metric("Current Crisis Level", crisis_display.get(last_crisis, "🟢 Low"))
+    
+    st.subheader("💡 Quick Examples")
+    example_messages = [
+        "I've been feeling really sad lately",
+        "I'm having a panic attack",
+        "I feel lonely and isolated",
+        "I'm stressed about work",
+        "I just need someone to talk to"
+    ]
+    
+    for example in example_messages:
+        if st.button(example, key=example):
+            # Simulate clicking this message
+            st.session_state.messages.append({"role": "user", "content": example})
+            st.rerun()
 
 # Footer
 st.markdown("---")
 st.markdown("""
-<div style='text-align: center'>
-    <p>MindMate - Mental Health Support System | Always here to listen 🤗</p>
+<div style='text-align: center; color: #666;'>
+    <p>🧠 <strong>MindMate</strong> - Your AI Mental Health Companion | Always here to listen 🤗</p>
+    <p><small>This is an AI support system. For medical emergencies, please contact professional healthcare providers.</small></p>
 </div>
 """, unsafe_allow_html=True)
