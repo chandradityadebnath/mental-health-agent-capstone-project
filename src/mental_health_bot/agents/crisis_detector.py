@@ -1,18 +1,24 @@
-"""
-Crisis Detection Agent
-"""
-
-from typing import Dict
+from typing import List, Dict, Any
+import asyncio
+from ..tools import MENTAL_HEALTH_TOOLS
 
 class CrisisDetectionAgent:
-    """Detects if the user message indicates a crisis"""
-
+    """Specialized agent for crisis detection"""
+    
     def __init__(self):
-        self.crisis_keywords = ["suicide", "kill myself", "end my life", "hopeless", "die"]
-
-    async def analyze(self, message: str) -> Dict:
-        message_lower = message.lower()
-        for kw in self.crisis_keywords:
-            if kw in message_lower:
-                return {"crisis_level": "high"}
-        return {"crisis_level": "low"}
+        self.tools = MENTAL_HEALTH_TOOLS
+    
+    async def detect_crisis(self, message: str, context: Dict) -> Dict:
+        """Detect crisis level and provide intervention"""
+        await asyncio.sleep(0.1)  # Simulate processing
+        
+        crisis_data = self.tools.crisis_detector(message)
+        coping_strategy = self.tools.generate_coping_strategy(crisis_data)
+        
+        return {
+            "crisis_level": crisis_data["crisis_level"],
+            "risk_score": crisis_data["risk_score"],
+            "immediate_action": crisis_data["immediate_action_required"],
+            "coping_strategy": coping_strategy,
+            "agent_type": "crisis_detection"
+        }
